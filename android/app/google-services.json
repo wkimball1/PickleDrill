@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "362936614399",
+    "project_id": "pickledrill-1aac3",
+    "storage_bucket": "pickledrill-1aac3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:362936614399:android:249b9a59f438b5e1563bca",
+        "android_client_info": {
+          "package_name": "com.PickleDrill.pickledrill"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAXjT08UbaBxLgimcJU9nNQUMjv3kPMHn8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
