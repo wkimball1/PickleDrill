@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import '../models/workouts.dart';
 import '../models/drills.dart';
 import 'package:uuid/uuid.dart';
@@ -7,32 +6,40 @@ import 'package:uuid/uuid.dart';
 class FireStoreMethods {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Object createWorkout(String name, List drills, String uid,
-      String focusOfWorkout, int dateOfWorkout, int lengthOfWorkout) {
-    // asking uid here because we dont want to make extra calls to firebase auth when we can just get from our state management
-
-    String workoutId = const Uuid().v1(); // creates unique id based on time
-    Workouts workouts = Workouts(
-        name: name,
-        uid: uid,
-        focusOfWorkout: focusOfWorkout,
-        drills: [],
-        workoutId: workoutId,
-        dateOfWorkout: dateOfWorkout,
-        lengthOfWorkout: lengthOfWorkout);
-
-    return workouts;
-  }
-
   Future<String> uploadWorkout(Workouts workout) async {
     // asking uid here because we dont want to make extra calls to firebase auth when we can just get from our state management
     String res = "Some error occurred";
+    if (workout.drills.isNotEmpty) {
+      try {
+        _firestore
+            .collection('workouts')
+            .doc(workout.workoutId)
+            .set(workout.toJson());
+        res = "success";
+      } catch (err) {
+        res = err.toString();
+      }
+      return res;
+    } else {
+      return "must have at least 1 drill selected";
+    }
+  }
+
+  Future<String> uploadDrill(Drills drill) async {
+    // asking uid here because we dont want to make extra calls to firebase auth when we can just get from our state management
+    String res = "Some error occurred";
     try {
-      _firestore
-          .collection('workouts')
-          .doc(workout.workoutId)
-          .set(workout.toJson());
-      res = "success";
+      bool drillExists = await FirebaseFirestore.instance
+          .collection('drills')
+          .where('name', isEqualTo: drill.name)
+          .get()
+          .then((value) => value.size > 0 ? true : false);
+      if (!drillExists) {
+        _firestore.collection('drills').doc(drill.drillId).set(drill.toJson());
+        res = 'success';
+      } else {
+        res = "drill already is in database";
+      }
     } catch (err) {
       res = err.toString();
     }

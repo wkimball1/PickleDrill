@@ -1,8 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:pickledrill/screens/workout_screen.dart';
+import 'package:pickledrill/widgets/add_workout.dart';
 import 'screens/home_screen.dart';
 import 'screens/profile_screen.dart';
+import './providers/drill_provider.dart';
+import './providers/user_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:pickledrill/global_variable.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -21,17 +26,38 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 0;
-  List<Map<String, Object>>? _pages;
+  bool isLoading = false;
+  int _page = 0;
+  late PageController pageController;
 
   @override
   void initState() {
-    _pages = [
-      {'page': const HomeScreen()},
-      {'page': const WorkoutScreen()},
-      {'page': ProfileScreen(uid: FirebaseAuth.instance.currentUser!.uid)},
-    ];
     super.initState();
+    pageController = PageController();
+    addData();
+  }
+
+  addData() async {
+    UserProvider userProvider =
+        Provider.of<UserProvider>(context, listen: false);
+    await userProvider.refreshUser();
+  }
+
+  void navigationTapped(int page) {
+    //Animating Page
+    pageController.jumpToPage(page);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    pageController.dispose();
+  }
+
+  void onPageChanged(int page) {
+    setState(() {
+      _page = page;
+    });
   }
 
   @override
@@ -95,15 +121,13 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-      body: _pages![_selectedIndex]['page'] as Widget,
+      body: PageView(
+        controller: pageController,
+        onPageChanged: onPageChanged,
+        children: homeScreenItems,
+      ),
       bottomNavigationBar: createBottomNavBar(),
     );
-  }
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
   }
 
   Widget createBottomNavBar() {
@@ -125,10 +149,10 @@ class _HomePageState extends State<HomePage> {
         ),
       ],
       type: BottomNavigationBarType.fixed,
-      currentIndex: _selectedIndex,
+      currentIndex: _page,
       selectedItemColor: Colors.black,
       iconSize: 40,
-      onTap: _onItemTapped,
+      onTap: navigationTapped,
       elevation: 5,
     );
   }

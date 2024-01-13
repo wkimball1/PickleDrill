@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:pickledrill/screens/add_drill_screen.dart';
+import 'package:pickledrill/screens/workout_screen.dart';
+import 'package:pickledrill/widgets/add_workout.dart';
 import 'screens/login_screen.dart';
 import 'providers/user_provider.dart';
 import 'providers/workout_provider.dart';
+import 'providers/drill_provider.dart';
 import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -29,6 +33,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<WorkoutProvider>(
           create: (_) => WorkoutProvider(),
         ),
+        ChangeNotifierProvider<DrillProvider>(
+          create: (_) => DrillProvider(),
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -42,6 +49,7 @@ class MyApp extends StatelessWidget {
             if (snapshot.connectionState == ConnectionState.active) {
               // Checking if the snapshot has any data or not
               if (snapshot.hasData) {
+                print('data: $snapshot.data');
                 // if snapshot has data which means user is logged in then we check the width of screen and accordingly display the screen layout
                 return const HomePage();
               } else if (snapshot.hasError) {

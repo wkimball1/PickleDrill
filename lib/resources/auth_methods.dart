@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/user.dart' as model;
@@ -13,13 +12,8 @@ class AuthMethods {
 
     DocumentSnapshot documentSnapshot =
         await _firestore.collection('users').doc(currentUser.uid).get();
-    if (documentSnapshot != null) {
-      return model.User.fromSnap(documentSnapshot);
-    } else {
-      print(documentSnapshot);
-      return model.User.fromSnap(documentSnapshot);
+    return model.User.fromSnap(documentSnapshot);
     }
-  }
 
   // Signing Up User
 

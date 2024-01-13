@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pickledrill/home.dart';
 import '/resources/auth_methods.dart';
 import 'signup_screen.dart';

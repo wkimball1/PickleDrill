@@ -36,6 +36,7 @@ dependencies:
   firebase_ui_auth: ^1.12.0
   flutter:
     sdk: flutter
+  flutter_slidable: ^3.0.1
   flutter_svg: ^2.0.9
   image_picker: ^1.0.6
   provider: ^6.1.1

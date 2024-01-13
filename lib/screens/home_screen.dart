@@ -1,14 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:pickledrill/models/workouts.dart';
 import 'package:pickledrill/widgets/workout_card.dart';
-import '../drill.dart';
-import '../providers/user_provider.dart';
-import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../utils.dart';
-import '../resources/auth_methods.dart';
-import '../resources/firestore_methods.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

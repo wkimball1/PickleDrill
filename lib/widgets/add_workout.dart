@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'drill_card.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../resources/firestore_methods.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../models/user.dart' as model;
 import '../models/workouts.dart';
 import '../utils.dart';
@@ -10,6 +8,11 @@ import '../colors.dart';
 import '../providers/user_provider.dart';
 import '../providers/workout_provider.dart';
 import 'package:provider/provider.dart';
+import '../screens/add_drill_screen.dart';
+import 'dart:developer';
+import '../providers/drill_provider.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
+import '../home.dart';
 
 class AddWorkout extends StatefulWidget {
   const AddWorkout({super.key});
@@ -20,57 +23,85 @@ class AddWorkout extends StatefulWidget {
 
 class _AddWorkoutState extends State<AddWorkout> {
   bool isLoading = false;
+  bool isReady = true;
   int dateOfWorkout = DateTime.now().millisecondsSinceEpoch;
   DateTime workoutStart = DateTime.now();
   DateTime workoutEnd = DateTime.now();
   List drills = [];
   Workouts? workout;
 
-
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _focusOfWorkoutController =
       TextEditingController();
 
-  void createWorkout() async {
-    final model.User user = Provider.of<UserProvider>(context).getUser;
-    int lengthOfWorkout = workoutEnd.difference(workoutStart).inSeconds;
+  @override
+  void initState() {
+    super.initState();
+    addDrills();
+    createWorkout();
+  }
 
+  addDrills() async {
+    DrillProvider drillProvider =
+        Provider.of<DrillProvider>(context, listen: false);
+    await drillProvider.addAllDrills();
+  }
+
+  createWorkout() async {
     setState(() {
       isLoading = true;
     });
-    // start the loading
-          workout = Provider.of<WorkoutProvider>(context).setWorkout(
-          _nameController.text,
-          user.uid,
-          _focusOfWorkoutController.text,
-          drills,
-          dateOfWorkout,
-          lengthOfWorkout);
+    UserProvider userProvider =
+        Provider.of<UserProvider>(context, listen: false);
+    await userProvider.refreshUser();
+    if (mounted) {
+      final model.User? user =
+          Provider.of<UserProvider>(context, listen: false).getUser;
+      int lengthOfWorkout = workoutEnd.difference(workoutStart).inSeconds;
 
+//check if workout already exists
+      workout = Provider.of<WorkoutProvider>(context, listen: false).getWorkout;
+      if (workout != null) {
+        print('Workout already exists ${inspect(workout)}');
+      } else {
+        // start the loading
+        workout = Provider.of<WorkoutProvider>(context, listen: false)
+            .setWorkout(
+                _nameController.text,
+                user?.uid,
+                _focusOfWorkoutController.text,
+                drills,
+                dateOfWorkout,
+                lengthOfWorkout);
+        print('created new workout: ${inspect(workout)}');
+      }
+    }
     setState(() {
-      isLoading = true;
+      isLoading = false;
     });
   }
-  void uploadWorkout(Workouts workout) async {
 
+  void uploadWorkout(Workouts workout) async {
     setState(() {
       isLoading = true;
     });
     // start the loading
     try {
       // upload to storage and db
-      String res = await FireStoreMethods().uploadWorkout(
-          workout);
-      if (res == "success") {
-        setState(() {
-          isLoading = false;
-        });
+      String res = await FireStoreMethods().uploadWorkout(workout);
+      if (res == "success" && context.mounted) {
+        Provider.of<WorkoutProvider>(context, listen: false)
+            .deleteWorkout(workout.workoutId);
+
         if (context.mounted) {
           showSnackBar(
             context,
             'Created!',
           );
+          Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => const HomePage()),
+              (route) => false);
         }
       } else {
         if (context.mounted) {
@@ -78,32 +109,15 @@ class _AddWorkoutState extends State<AddWorkout> {
         }
       }
     } catch (err) {
-      setState(() {
-        isLoading = false;
-      });
       showSnackBar(
         context,
         err.toString(),
       );
     }
+    setState(() {
+      isLoading = false;
+    });
   }
-
-
-  fetchAllDrills() async {
-    final Workouts? _workout = Provider.of<WorkoutProvider>(context).getWorkout();
-    if (_workout != null){
-    try {
-      QuerySnapshot snap =
-          await FirebaseFirestore.instance.collection('workouts').doc(_workout.workoutID).collection('drills').get();
-      _drills = snap.docs;
-    } catch (err) {
-      showSnackBar(
-        context,
-        err.toString(),
-      );
-    }
-    setState(() {});
-  }}
 
   @override
   void dispose() {
@@ -116,93 +130,132 @@ class _AddWorkoutState extends State<AddWorkout> {
   @override
   Widget build(BuildContext context) {
     final UserProvider userProvider = Provider.of<UserProvider>(context);
-    final WorkoutProvider workoutProvider = Provider.of<WorkoutProvider>(context);
+    final WorkoutProvider workoutProvider =
+        Provider.of<WorkoutProvider>(context, listen: true);
+    workout = workoutProvider.getWorkout;
 
-
-
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: mobileBackgroundColor,
-        // leading: IconButton(
-        //   icon: const Icon(Icons.arrow_back),
-        //   onPressed: minimizeWorkout,
-        // ),
-        title: const Text(
-          'Create Workout',
-        ),
-        centerTitle: false,
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => postWorkout(workout),
-            child: const Text(
-              "Finish Workout",
-              style: TextStyle(
-                  color: Colors.blueAccent,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16.0),
-            ),
+    return (isLoading
+        ? const Center(
+            child: CircularProgressIndicator(),
           )
-        ],
-      ),
-      // POST FORM
-      body: Column(
-        children: <Widget>[
-          isLoading
-              ? const LinearProgressIndicator()
-              : const Padding(padding: EdgeInsets.only(top: 0.0)),
-          const Divider(),
-          Container(
-            color: Colors.blueAccent,
-            child: TextButton(
-            
-            onPressed: () => get(userProvider.getUser.uid, _drills),
-            child: const Text(
-              "Add Drill",
-              style: TextStyle(
-                  color: Colors.blueAccent,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16.0),
-            ),
-          )
-          )
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              CircleAvatar(
-                backgroundImage: NetworkImage(
-                  userProvider.getUser.photoUrl,
-                ),
+        : Scaffold(
+            appBar: AppBar(
+              backgroundColor: mobileBackgroundColor,
+              // leading: IconButton(
+              //   icon: const Icon(Icons.arrow_back),
+              //   onPressed: minimizeWorkout,
+              // ),
+              title: const Text(
+                'Create Workout',
               ),
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 0.3,
-                child: TextField(
-                  controller: _descriptionController,
-                  decoration: const InputDecoration(
-                      hintText: "Write a caption...", border: InputBorder.none),
-                  maxLines: 8,
-                ),
-              ),
-              SizedBox(
-                height: 45.0,
-                width: 45.0,
-                child: AspectRatio(
-                  aspectRatio: 487 / 451,
-                  child: Container(
-                    decoration: BoxDecoration(
-                        image: DecorationImage(
-                      fit: BoxFit.fill,
-                      alignment: FractionalOffset.topCenter,
-                      image: MemoryImage(_file!),
-                    )),
+              centerTitle: false,
+              actions: <Widget>[
+                TextButton(
+                  onPressed: workout != null && workout!.drills.isNotEmpty
+                      ? () => uploadWorkout(workout!)
+                      : () => showSnackBar(
+                            context,
+                            ('must add a drill'),
+                          ),
+                  child: const Text(
+                    "Finish Workout",
+                    style: TextStyle(
+                        color: Colors.blueAccent,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16.0),
                   ),
-                ),
-              ),
-            ],
+                )
+              ],
+            ),
+            // POST FORM
+            body: Column(
+              children: [
+                workout != null
+                    ? ListView(shrinkWrap: true, children: [
+                        for (final i in workout?.drills ?? [])
+                          Dismissible(
+                              direction: DismissDirection.endToStart,
+                              resizeDuration: Duration(milliseconds: 200),
+                              key: UniqueKey(),
+                              onDismissed: (direction) {
+                                setState(()
+                                    // TODO: implement your delete function and check direction if needed
+                                    {
+                                  Provider.of<WorkoutProvider>(context,
+                                          listen: false)
+                                      .removeDrills(i);
+                                });
+                              },
+                              background: Container(
+                                padding: EdgeInsets.only(left: 28.0),
+                                alignment: AlignmentDirectional.centerStart,
+                                color: Colors.red,
+                                child: Icon(
+                                  Icons.delete_forever,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              // secondaryBackground: ...,
+                              child: Card(
+                                color: Colors.white,
+                                child: ListTile(title: Text(i['name'])),
+                              )),
+                      ])
+                    : const SizedBox(height: 10),
+                Container(
+                    width: MediaQuery.of(context).size.width,
+                    color: Colors.blue,
+                    child: TextButton(
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const AddDrills(),
+                        ),
+                      ),
+                      child: const Text(
+                        "Add Drill",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16.0),
+                      ),
+                    )),
+              ],
+            ),
+          ));
+  }
+
+  Widget createSlidable(var i) {
+    final WorkoutProvider workoutProvider =
+        Provider.of<WorkoutProvider>(context);
+
+    return Slidable(
+      // Specify a key if the Slidable is dismissible.
+      key: const ValueKey(0),
+
+      // The end action pane is the one at the right or the bottom side.
+      endActionPane: ActionPane(
+        motion: ScrollMotion(),
+        extentRatio: .25,
+        children: [
+          SlidableAction(
+            // An action can be bigger than the others.
+            // flex: 1,
+            onPressed: (BuildContext context) async {
+              await Provider.of<WorkoutProvider>(context, listen: false)
+                  .removeDrills(i);
+            },
+
+            backgroundColor: Color(0xFFFE4A49),
+            foregroundColor: Colors.white,
+            icon: Icons.delete,
+            label: 'Delete',
           ),
-          const Divider(),
         ],
       ),
+
+      // The child of the Slidable is what the user sees when the
+      // component is not dragged.
+      child: ListTile(title: Center(child: Text('${i['name']}'))),
     );
   }
 }

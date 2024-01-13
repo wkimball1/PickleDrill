@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:developer';
 
 class DrillCard extends StatelessWidget {
   final snap;
@@ -6,29 +7,28 @@ class DrillCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Card(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              snap.data()['name'],
-              style: const TextStyle(
-                fontSize: 18.0,
-                fontWeight: FontWeight.bold,
-                // color: Colors.lightGreen[300]
-              ),
+    Size size = MediaQuery.of(context).size;
+    return Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            snap['name'],
+            style: const TextStyle(
+              fontSize: 18.0,
+              fontWeight: FontWeight.bold,
+              // color: Colors.lightGreen[300]
             ),
-            const SizedBox(height: 2.0),
-            Text(
-              snap.data()['description'],
-              style: const TextStyle(
-                fontSize: 12.0,
-                // color: Colors.lightGreen[300]
-              ),
+          ),
+          const SizedBox(height: 2.0),
+          Text(
+            snap['description'],
+            style: const TextStyle(
+              fontSize: 12.0,
+              // color: Colors.lightGreen[300]
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

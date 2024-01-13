@@ -1,12 +1,12 @@
 import 'package:flutter/widgets.dart';
 import '../models/workouts.dart';
-import '../resources/auth_methods.dart';
 import 'package:uuid/uuid.dart';
+import 'dart:developer';
 
 class WorkoutProvider with ChangeNotifier {
   Workouts? _workout;
 
-  Workouts get getWorkout => _workout!;
+  Workouts? get getWorkout => _workout;
 
   Workouts setWorkout(
       name, uid, focusOfWorkout, drills, dateOfWorkout, lengthOfWorkout) {
@@ -28,13 +28,16 @@ class WorkoutProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  bool removeDrills(drill) {
-    return _workout!.drills.remove(drill);
+  Future<bool> removeDrills(drill) async {
+    bool res = _workout!.drills.remove(drill);
+    notifyListeners();
+    return res;
   }
 
   void deleteWorkout(workoutId) {
     if (_workout?.workoutId == workoutId) {
       _workout = null;
+      notifyListeners();
     }
   }
 }

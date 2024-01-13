@@ -2,35 +2,39 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Drills {
   final String name;
-  final String uid;
+  final String drillId;
   final String description;
   final String url;
-  final String type;
+  final String level;
+  final List focus;
 
   const Drills(
       {required this.name,
-      required this.uid,
+      required this.drillId,
       required this.description,
       this.url = "",
-      required this.type});
+      this.level = "",
+      required this.focus});
 
   static Drills fromSnap(DocumentSnapshot snap) {
     var snapshot = snap.data() as Map<String, dynamic>;
 
     return Drills(
       name: snapshot["name"],
-      uid: snapshot["uid"],
+      drillId: snapshot["drillId"],
       description: snapshot["description"],
       url: snapshot["url"],
-      type: snapshot["type"],
+      level: snapshot["level"],
+      focus: snapshot["focus"],
     );
   }
 
   Map<String, dynamic> toJson() => {
         "name": name,
-        "uid": uid,
+        "drillId": drillId,
         "description": description,
         "url": url,
-        "type": type,
+        "level": level,
+        "focus": focus,
       };
 }
