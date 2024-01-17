@@ -29,11 +29,12 @@ class DrillProvider with ChangeNotifier {
   Future<void> addAllDrills() async {
     List<Drills> drills = [];
     drills.add(setDrill(
-        'Solo Paddle Hits',
-        'Repeatedly hit the ball straight in the air.  See how many you can do in a row.  Try not to move around too much',
-        '',
-        'beginner',
-        ['volley']));
+      'Solo Paddle Hits',
+      'Repeatedly hit the ball straight in the air.  See how many you can do in a row.  Try not to move around too much',
+      '',
+      'beginner',
+      ['volley'],
+    ));
     drills.add(setDrill(
         'Easy Dinking',
         'Stand with your toes on the kitchen line and a partner opposite.  Aim to hit dinks that bounce in the kitchen in one half of the court',

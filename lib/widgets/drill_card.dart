@@ -8,25 +8,61 @@ class DrillCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-    return Card(
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 2.0, vertical: 2.0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            snap['name'],
-            style: const TextStyle(
-              fontSize: 18.0,
-              fontWeight: FontWeight.bold,
-              // color: Colors.lightGreen[300]
-            ),
-          ),
-          const SizedBox(height: 2.0),
-          Text(
-            snap['description'],
-            style: const TextStyle(
-              fontSize: 12.0,
-              // color: Colors.lightGreen[300]
-            ),
+        children: [
+          Row(
+            children: [
+              Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    snap['name'],
+                    style: const TextStyle(
+                      fontSize: 12.0,
+                      fontWeight: FontWeight.bold,
+                      // color: Colors.lightGreen[300]
+                    ),
+                  ),
+                  // const SizedBox(height: 2.0),
+                  // Text(
+                  //   snap['description'],
+                  //   style: const TextStyle(
+                  //     fontSize: 12.0,
+                  //     // color: Colors.lightGreen[300]
+                  //   ),
+                  // ),
+                ],
+              ),
+              Spacer(),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      snap['name'],
+                      style: const TextStyle(
+                        fontSize: 12.0,
+                        fontWeight: FontWeight.bold,
+                        // color: Colors.lightGreen[300]
+                      ),
+                    ),
+                  ),
+                  // const SizedBox(height: 2.0),
+                  // Text(
+                  //   snap['description'],
+                  //   style: const TextStyle(
+                  //     fontSize: 12.0,
+                  //     // color: Colors.lightGreen[300]
+                  //   ),
+                  // ),
+                ],
+              ),
+            ],
           ),
         ],
       ),

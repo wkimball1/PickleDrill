@@ -12,14 +12,21 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'home.dart';
 import 'colors.dart';
+import '../providers/timer_provider.dart';
+import '../resources/timer_service.dart';
 
 void main() async {
+  final timerService = TimerService();
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  runApp(const MyApp());
+  runApp(TimerServiceProvider(
+    // provide timer service to all widgets of your app
+    service: timerService,
+    child: const MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {

@@ -8,7 +8,7 @@ import 'screens/profile_screen.dart';
 const webScreenSize = 600;
 
 List<Widget> homeScreenItems = [
-  WorkoutScreen(),
+  WorkoutScreen(physics: AlwaysScrollableScrollPhysics()),
   const AddWorkout(),
   ProfileScreen(
     uid: FirebaseAuth.instance.currentUser!.uid,

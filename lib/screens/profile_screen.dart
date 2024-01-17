@@ -72,77 +72,73 @@ class _ProfileScreenState extends State<ProfileScreen> {
               backgroundColor: mobileBackgroundColor,
               title: Text(
                 userData['username'],
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.black,
+                ),
               ),
               centerTitle: false,
             ),
-            body: ListView(
-              physics: AlwaysScrollableScrollPhysics(),
-              shrinkWrap: true,
-              children: [
-                Column(children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        flex: 1,
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                FirebaseAuth.instance.currentUser!.uid ==
-                                        widget.uid
-                                    ? FollowButton(
-                                        text: 'Sign Out',
-                                        backgroundColor: mobileButtonColor,
-                                        textColor:
-                                            const Color.fromARGB(255, 0, 0, 0),
-                                        borderColor:
-                                            const Color.fromARGB(255, 0, 0, 0),
-                                        function: () async {
-                                          await AuthMethods().signOut();
-                                          if (context.mounted) {
-                                            Navigator.of(context)
-                                                .pushReplacement(
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    const LoginScreen(),
-                                              ),
-                                            );
-                                          }
-                                        },
-                                      )
-                                    : const Text("hi"),
-                              ],
-                            ),
-                          ],
+            body: Center(
+              child: ListView(
+                physics: AlwaysScrollableScrollPhysics(),
+                shrinkWrap: true,
+                children: [
+                  Column(children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 1,
+                          child: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  FirebaseAuth.instance.currentUser!.uid ==
+                                          widget.uid
+                                      ? FollowButton(
+                                          text: 'Sign Out',
+                                          backgroundColor: mobileButtonColor,
+                                          textColor: const Color.fromARGB(
+                                              255, 0, 0, 0),
+                                          borderColor: const Color.fromARGB(
+                                              255, 0, 0, 0),
+                                          function: () async {
+                                            await AuthMethods().signOut();
+                                            if (context.mounted) {
+                                              Navigator.of(context)
+                                                  .pushReplacement(
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      const LoginScreen(),
+                                                ),
+                                              );
+                                            }
+                                          },
+                                        )
+                                      : const Text("hi"),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  Container(
-                    alignment: Alignment.centerLeft,
-                    padding: const EdgeInsets.only(
-                      top: 15,
+                      ],
                     ),
-                    child: Text(
-                      userData['username'],
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
+                    Container(
+                      alignment: Alignment.centerLeft,
+                      padding: const EdgeInsets.only(
+                        top: 1,
+                        left: 20,
+                      ),
+                      child: Text(
+                        userData['rating'].toString(),
                       ),
                     ),
-                  ),
-                  Container(
-                    alignment: Alignment.centerLeft,
-                    padding: const EdgeInsets.only(
-                      top: 1,
-                    ),
-                    child: Text(
-                      userData['rating'].toString(),
-                    ),
-                  ),
-                  WorkoutScreen(physics: ClampingScrollPhysics()),
-                ]),
-              ],
+                    WorkoutScreen(physics: ClampingScrollPhysics()),
+                  ]),
+                ],
+              ),
             ),
           );
   }

@@ -68,8 +68,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                     onPressed: () => Navigator.of(context).push(
                         MaterialPageRoute(
                             builder: (context) => const AddWorkout())))
-                : Container(
-                    child: ListView(
+                : ListView(
                     shrinkWrap: true,
                     physics: widget.physics,
                     // Column is also a layout widget. It takes a list of children and
@@ -92,7 +91,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                                   (workout) => WorkoutCard(snap: workout))
                               .toList()),
                     ],
-                  )),
+                  ),
           );
   }
 }

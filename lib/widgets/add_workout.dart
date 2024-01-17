@@ -13,6 +13,7 @@ import 'dart:developer';
 import '../providers/drill_provider.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import '../home.dart';
+import '../widgets/text_field_input.dart';
 
 class AddWorkout extends StatefulWidget {
   const AddWorkout({super.key});
@@ -34,6 +35,8 @@ class _AddWorkoutState extends State<AddWorkout> {
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _focusOfWorkoutController =
       TextEditingController();
+  List<TextEditingController> _timeController = [];
+  final TextEditingController _defaultTimeController = TextEditingController();
 
   @override
   void initState() {
@@ -119,12 +122,51 @@ class _AddWorkoutState extends State<AddWorkout> {
     });
   }
 
+  void cancelWorkout(Workouts workout) async {
+    setState(() {
+      isLoading = true;
+    });
+    // start the loading
+    try {
+      Provider.of<WorkoutProvider>(context, listen: false)
+          .deleteWorkout(workout.workoutId);
+
+      Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const HomePage()),
+          (route) => false);
+    } catch (err) {
+      showSnackBar(
+        context,
+        err.toString(),
+      );
+    }
+    setState(() {
+      isLoading = false;
+    });
+  }
+
+  void updateControllers() {
+    setState(() {
+      _timeController = [];
+      if (workout != null && workout!.drills.isNotEmpty) {
+        for (int i = 0; i < workout!.drills.length; i++) {
+          _timeController.add(TextEditingController());
+        }
+      }
+    });
+    inspect(_timeController);
+  }
+
   @override
   void dispose() {
     super.dispose();
     _descriptionController.dispose();
     _nameController.dispose();
     _focusOfWorkoutController.dispose();
+    _defaultTimeController.dispose();
+    for (int i = 0; i < _timeController.length; i++) {
+      _timeController[i].dispose();
+    }
   }
 
   @override
@@ -133,7 +175,7 @@ class _AddWorkoutState extends State<AddWorkout> {
     final WorkoutProvider workoutProvider =
         Provider.of<WorkoutProvider>(context, listen: true);
     workout = workoutProvider.getWorkout;
-
+    updateControllers();
     return (isLoading
         ? const Center(
             child: CircularProgressIndicator(),
@@ -145,10 +187,19 @@ class _AddWorkoutState extends State<AddWorkout> {
               //   icon: const Icon(Icons.arrow_back),
               //   onPressed: minimizeWorkout,
               // ),
+              leadingWidth: 100,
               title: const Text(
                 'Create Workout',
+                style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16.0),
               ),
-              centerTitle: false,
+              leading: IconButton(
+                onPressed: () => {},
+                icon: const Icon(Icons.arrow_back),
+              ),
+              centerTitle: true,
               actions: <Widget>[
                 TextButton(
                   onPressed: workout != null && workout!.drills.isNotEmpty
@@ -158,11 +209,11 @@ class _AddWorkoutState extends State<AddWorkout> {
                             ('must add a drill'),
                           ),
                   child: const Text(
-                    "Finish Workout",
+                    "Finish",
                     style: TextStyle(
                         color: Colors.blueAccent,
                         fontWeight: FontWeight.bold,
-                        fontSize: 16.0),
+                        fontSize: 14.0),
                   ),
                 )
               ],
@@ -170,55 +221,12 @@ class _AddWorkoutState extends State<AddWorkout> {
             // POST FORM
             body: Column(
               children: [
-                workout != null
-                    ? ListView(shrinkWrap: true, children: [
-                        for (final i in workout?.drills ?? [])
-                          Dismissible(
-                              direction: DismissDirection.endToStart,
-                              resizeDuration: Duration(milliseconds: 200),
-                              key: UniqueKey(),
-                              onDismissed: (direction) {
-                                setState(()
-                                    // TODO: implement your delete function and check direction if needed
-                                    {
-                                  Provider.of<WorkoutProvider>(context,
-                                          listen: false)
-                                      .removeDrills(i);
-                                });
-                              },
-                              background: Container(
-                                padding: EdgeInsets.only(left: 28.0),
-                                alignment: AlignmentDirectional.centerStart,
-                                color: Colors.red,
-                                child: Icon(
-                                  Icons.delete_forever,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              // secondaryBackground: ...,
-                              child: Card(
-                                color: Colors.white,
-                                child: ListTile(title: Text(i['name'])),
-                              )),
-                      ])
-                    : const SizedBox(height: 10),
-                Container(
-                    width: MediaQuery.of(context).size.width,
-                    color: Colors.blue,
-                    child: TextButton(
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const AddDrills(),
-                        ),
-                      ),
-                      child: const Text(
-                        "Add Drill",
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16.0),
-                      ),
-                    )),
+                Flexible(
+                  child: ListView(
+                    shrinkWrap: true,
+                    children: listView(),
+                  ),
+                ),
               ],
             ),
           ));
@@ -257,5 +265,107 @@ class _AddWorkoutState extends State<AddWorkout> {
       // component is not dragged.
       child: ListTile(title: Center(child: Text('${i['name']}'))),
     );
+  }
+
+  List<Widget> listView() {
+    List<Widget> topPart = [];
+    if (workout != null && workout!.drills.isNotEmpty) {
+      for (int i = 0; i < workout!.drills.length; i++) {
+        topPart.add(Dismissible(
+            direction: DismissDirection.endToStart,
+            resizeDuration: Duration(milliseconds: 200),
+            key: UniqueKey(),
+            onDismissed: (direction) {
+              setState(()
+                  // TODO: implement your delete function and check direction if needed
+                  {
+                Provider.of<WorkoutProvider>(context, listen: false)
+                    .removeDrills(i);
+              });
+            },
+            background: Container(
+              padding: EdgeInsets.only(left: 28.0),
+              alignment: AlignmentDirectional.centerStart,
+              color: Colors.red,
+              child: Icon(
+                Icons.delete_forever,
+                color: Colors.white,
+              ),
+            ),
+            // secondaryBackground: ...,
+            child: Card(
+              color: Colors.white,
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: ListTile(
+                      title: Text(workout!.drills[i]['name']),
+                    ),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextFieldInput(
+                        hintText: '10',
+                        textInputType: TextInputType.number,
+                        textEditingController: _timeController[i],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )));
+      }
+    } else {
+      topPart.add(
+          SizedBox(height: 300, child: Center(child: Text('Empty Workout'))));
+    }
+    topPart.add(Align(
+      alignment: Alignment.bottomCenter,
+      child: Container(
+        margin: const EdgeInsets.all(5),
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const AddDrills(),
+            ),
+          ),
+          style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.all(Colors.blue),
+              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                  RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(0.0),
+                      side: BorderSide.none))),
+          child: const Text(
+            "Add Drill",
+            style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 16.0),
+          ),
+        ),
+      ),
+    ));
+    topPart.add(Align(
+      alignment: Alignment.bottomRight,
+      child: Container(
+        margin: const EdgeInsets.all(5),
+        // width: double.infinity,
+        child: ElevatedButton(
+          onPressed: () => cancelWorkout(workout!),
+          child: const Text(
+            "Cancel Workout",
+            style: TextStyle(
+                color: Colors.blueAccent,
+                fontWeight: FontWeight.bold,
+                fontSize: 12.0),
+          ),
+        ),
+      ),
+    ));
+
+    return topPart;
   }
 }

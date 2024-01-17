@@ -57,26 +57,39 @@ class _WorkoutCardState extends State<WorkoutCard> {
 
     return Card(
       margin: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 0),
-      child: SizedBox(
-        child: Builder(builder: (context) {
-          return Column(
+      child: Builder(builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
-                  Text(
-                    user.username,
-                    style: const TextStyle(
-                      fontSize: 18.0,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        user.username,
+                        style: const TextStyle(
+                          fontSize: 14.0,
 
-                      // color: Colors.lightGreen[300],
-                    ),
+                          // color: Colors.lightGreen[300],
+                        ),
+                      ),
+                      Text(
+                        elapsedDate(widget.snap.data()['dateOfWorkout']),
+                        style: const TextStyle(
+                          fontSize: 10.0,
+                          // color: Colors.lightGreen[300]
+                        ),
+                      ),
+                    ],
                   ),
-                  Spacer(),
-                  widget.snap['uid'].toString() == user?.uid
+                  const Spacer(),
+                  widget.snap['uid'].toString() == user.uid
                       ? Container(
-                          padding: EdgeInsets.fromLTRB(0, 0, 10, 0),
+                          padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
                           child: IconButton(
                             onPressed: () {
                               showDialog(
@@ -93,7 +106,7 @@ class _WorkoutCardState extends State<WorkoutCard> {
                                                   child: Container(
                                                     padding: const EdgeInsets
                                                         .symmetric(
-                                                        vertical: 12,
+                                                        vertical: 16,
                                                         horizontal: 16),
                                                     child: Text(e),
                                                   ),
@@ -111,19 +124,11 @@ class _WorkoutCardState extends State<WorkoutCard> {
                                 },
                               );
                             },
-                            icon: const Icon(Icons.more_vert),
+                            icon: const Icon(Icons.more_horiz),
                           ),
                         )
                       : Container(),
                 ],
-              ),
-              const SizedBox(height: 4.0),
-              Text(
-                elapsedDate(widget.snap.data()['dateOfWorkout']),
-                style: const TextStyle(
-                  fontSize: 12.0,
-                  // color: Colors.lightGreen[300]
-                ),
               ),
               const SizedBox(height: 4.0),
               const Text(
@@ -155,9 +160,9 @@ class _WorkoutCardState extends State<WorkoutCard> {
               ),
               const SizedBox(height: 10.0),
             ],
-          );
-        }),
-      ),
+          ),
+        );
+      }),
     );
   }
 
