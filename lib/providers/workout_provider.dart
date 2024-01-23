@@ -28,10 +28,12 @@ class WorkoutProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> removeDrills(drill) async {
-    bool res = _workout!.drills.remove(drill);
+  dynamic removeDrills(drill) {
+    var removed = _workout!.drills.removeAt(drill);
+    print(drill);
+    inspect(_workout!.drills);
     notifyListeners();
-    return res;
+    return removed;
   }
 
   void deleteWorkout(workoutId) {

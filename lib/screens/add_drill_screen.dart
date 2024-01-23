@@ -132,6 +132,7 @@ class _AddDrillsState extends State<AddDrills> {
                 ),
                 Expanded(
                   child: ListView.builder(
+                      physics: AlwaysScrollableScrollPhysics(),
                       shrinkWrap: true,
                       itemCount: drillSubset.length,
                       itemBuilder: (context, index) => Card(

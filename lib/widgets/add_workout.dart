@@ -14,6 +14,7 @@ import '../providers/drill_provider.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import '../home.dart';
 import '../widgets/text_field_input.dart';
+import 'package:flutter/rendering.dart';
 
 class AddWorkout extends StatefulWidget {
   const AddWorkout({super.key});
@@ -181,6 +182,7 @@ class _AddWorkoutState extends State<AddWorkout> {
             child: CircularProgressIndicator(),
           )
         : Scaffold(
+            resizeToAvoidBottomInset: false,
             appBar: AppBar(
               backgroundColor: mobileBackgroundColor,
               // leading: IconButton(
@@ -219,53 +221,97 @@ class _AddWorkoutState extends State<AddWorkout> {
               ],
             ),
             // POST FORM
-            body: Column(
-              children: [
-                Flexible(
-                  child: ListView(
-                    shrinkWrap: true,
-                    children: listView(),
-                  ),
+            body: SingleChildScrollView(
+              physics: ClampingScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: MediaQuery.of(context).size.height,
                 ),
-              ],
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Container(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 16),
+                        child: TextFieldInput(
+                          hintText: 'What are you trying to improve?',
+                          textInputType: TextInputType.text,
+                          textEditingController: _focusOfWorkoutController,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      color: Colors.white,
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                      child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text("Drill Name",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      decoration: TextDecoration.underline)),
+                            ),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: Text("Time",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      decoration: TextDecoration.underline)),
+                            ),
+                          ]),
+                    ),
+                    Container(
+                      child: ListView(
+                        physics: NeverScrollableScrollPhysics(),
+                        shrinkWrap: true,
+                        children: listView(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ));
   }
 
-  Widget createSlidable(var i) {
-    final WorkoutProvider workoutProvider =
-        Provider.of<WorkoutProvider>(context);
+  // Widget createSlidable(var i) {
+  //   final WorkoutProvider workoutProvider =
+  //       Provider.of<WorkoutProvider>(context);
 
-    return Slidable(
-      // Specify a key if the Slidable is dismissible.
-      key: const ValueKey(0),
+  //   return Slidable(
+  //     // Specify a key if the Slidable is dismissible.
+  //     key: const ValueKey(0),
 
-      // The end action pane is the one at the right or the bottom side.
-      endActionPane: ActionPane(
-        motion: ScrollMotion(),
-        extentRatio: .25,
-        children: [
-          SlidableAction(
-            // An action can be bigger than the others.
-            // flex: 1,
-            onPressed: (BuildContext context) async {
-              await Provider.of<WorkoutProvider>(context, listen: false)
-                  .removeDrills(i);
-            },
+  //     // The end action pane is the one at the right or the bottom side.
+  //     endActionPane: ActionPane(
+  //       motion: ScrollMotion(),
+  //       extentRatio: .25,
+  //       children: [
+  //         SlidableAction(
+  //           // An action can be bigger than the others.
+  //           // flex: 1,
+  //           onPressed: (BuildContext context) async {
+  //             await Provider.of<WorkoutProvider>(context, listen: false)
+  //                 .removeDrills(i);
+  //           },
 
-            backgroundColor: Color(0xFFFE4A49),
-            foregroundColor: Colors.white,
-            icon: Icons.delete,
-            label: 'Delete',
-          ),
-        ],
-      ),
+  //           backgroundColor: Color(0xFFFE4A49),
+  //           foregroundColor: Colors.white,
+  //           icon: Icons.delete,
+  //           label: 'Delete',
+  //         ),
+  //       ],
+  //     ),
 
-      // The child of the Slidable is what the user sees when the
-      // component is not dragged.
-      child: ListTile(title: Center(child: Text('${i['name']}'))),
-    );
-  }
+  //     // The child of the Slidable is what the user sees when the
+  //     // component is not dragged.
+  //     child: ListTile(title: Center(child: Text('${i['name']}'))),
+  //   );
+  // }
 
   List<Widget> listView() {
     List<Widget> topPart = [];
@@ -293,19 +339,19 @@ class _AddWorkoutState extends State<AddWorkout> {
               ),
             ),
             // secondaryBackground: ...,
-            child: Card(
+            child: Container(
               color: Colors.white,
               child: Row(
                 children: [
                   Expanded(
-                    flex: 2,
+                    flex: 6,
                     child: ListTile(
                       title: Text(workout!.drills[i]['name']),
                     ),
                   ),
-                  Expanded(
+                  Flexible(
                     child: Padding(
-                      padding: const EdgeInsets.all(8.0),
+                      padding: const EdgeInsets.all(4.0),
                       child: TextFieldInput(
                         hintText: '10',
                         textInputType: TextInputType.number,
@@ -319,7 +365,7 @@ class _AddWorkoutState extends State<AddWorkout> {
       }
     } else {
       topPart.add(
-          SizedBox(height: 300, child: Center(child: Text('Empty Workout'))));
+          SizedBox(height: 200, child: Center(child: Text('Empty Workout'))));
     }
     topPart.add(Align(
       alignment: Alignment.bottomCenter,
