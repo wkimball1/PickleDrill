@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pickledrill/providers/screen_index_provider.dart';
 import 'package:pickledrill/screens/add_drill_screen.dart';
 import 'package:pickledrill/screens/workout_screen.dart';
 import 'package:pickledrill/widgets/add_workout.dart';
@@ -37,6 +38,8 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<UserProvider>(create: (_) => UserProvider()),
+        ChangeNotifierProvider<screenIndexProvider>(
+            create: (_) => screenIndexProvider()),
         ChangeNotifierProvider<WorkoutProvider>(
           create: (_) => WorkoutProvider(),
         ),
@@ -50,6 +53,10 @@ class MyApp extends StatelessWidget {
         theme: ThemeData.light().copyWith(
           scaffoldBackgroundColor: mobileBackgroundColor,
         ),
+        routes: {
+          '/home': (context) => HomePage(),
+          '/addworkout': (context) => AddWorkout()
+        },
         home: StreamBuilder(
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (context, snapshot) {

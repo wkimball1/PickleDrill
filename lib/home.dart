@@ -6,6 +6,7 @@ import 'screens/home_screen.dart';
 import 'screens/profile_screen.dart';
 import './providers/drill_provider.dart';
 import './providers/user_provider.dart';
+import './providers/screen_index_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:pickledrill/global_variable.dart';
 
@@ -45,7 +46,8 @@ class _HomePageState extends State<HomePage> {
 
   void navigationTapped(int page) {
     //Animating Page
-    pageController.jumpToPage(page);
+    Provider.of<screenIndexProvider>(context, listen: false)
+        .updateScreenIndex(page);
   }
 
   @override
@@ -55,19 +57,14 @@ class _HomePageState extends State<HomePage> {
   }
 
   void onPageChanged(int page) {
-    setState(() {
-      _page = page;
-    });
+    Provider.of<screenIndexProvider>(context, listen: false)
+        .updateScreenIndex(page);
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    final screenindexprovider = Provider.of<screenIndexProvider>(context);
+    _page = screenindexprovider.fetchCurrentScreenIndex;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -122,11 +119,8 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-      body: PageView(
-        controller: pageController,
-        onPageChanged: onPageChanged,
-        children: homeScreenItems,
-      ),
+      body: homeScreenItems[
+          Provider.of<screenIndexProvider>(context).fetchCurrentScreenIndex],
       bottomNavigationBar: createBottomNavBar(),
     );
   }
@@ -150,7 +144,8 @@ class _HomePageState extends State<HomePage> {
         ),
       ],
       type: BottomNavigationBarType.fixed,
-      currentIndex: _page,
+      currentIndex:
+          Provider.of<screenIndexProvider>(context).fetchCurrentScreenIndex,
       selectedItemColor: Colors.black,
       iconSize: 40,
       onTap: navigationTapped,

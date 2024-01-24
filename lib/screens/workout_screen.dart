@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:pickledrill/home.dart';
 import 'package:pickledrill/widgets/workout_card.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../utils.dart';
 import 'package:pickledrill/widgets/add_workout.dart';
 import 'dart:developer';
+import '../providers/screen_index_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:persistent_bottom_nav_bar/persistent_tab_view.dart';
 
 class WorkoutScreen extends StatefulWidget {
   ScrollPhysics? physics;
@@ -19,9 +23,17 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
   List workoutData = [];
   bool isLoading = true;
 
+  late PageController pageController;
   @override
   void initState() {
     super.initState();
+    pageController = PageController();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
     getData();
   }
 
@@ -33,15 +45,16 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
       // get workouts
       var workoutSnap = await FirebaseFirestore.instance
           .collection('workouts')
-          .where('uid', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+          .where("uid", isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+          .orderBy("dateOfWorkout", descending: true)
           .get();
 
       for (int i = 0; i < workoutSnap.docs.length; i++) {
         workoutData.add(workoutSnap.docs[i]);
       }
-      inspect(workoutData);
       setState(() {});
     } catch (e) {
+      print(e);
       showSnackBar(
         context,
         e.toString(),
@@ -54,6 +67,8 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final _screenProvider =
+        Provider.of<screenIndexProvider>(context, listen: true);
     Size size = MediaQuery.of(context).size;
     return isLoading
         ? const Center(
@@ -65,9 +80,11 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
             child: workoutData.isEmpty
                 ? ElevatedButton(
                     child: const Text("Create a workout now"),
-                    onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                            builder: (context) => const AddWorkout())))
+                    onPressed: () => {
+                          setState(() {
+                            _screenProvider.updateScreenIndex(1);
+                          })
+                        })
                 : ListView(
                     shrinkWrap: true,
                     physics: widget.physics,

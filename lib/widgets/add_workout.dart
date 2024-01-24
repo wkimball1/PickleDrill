@@ -7,6 +7,7 @@ import '../utils.dart';
 import '../colors.dart';
 import '../providers/user_provider.dart';
 import '../providers/workout_provider.dart';
+import '../providers/screen_index_provider.dart';
 import 'package:provider/provider.dart';
 import '../screens/add_drill_screen.dart';
 import 'dart:developer';
@@ -77,26 +78,20 @@ class _AddWorkoutState extends State<AddWorkout> {
         Provider.of<UserProvider>(context, listen: false);
     await userProvider.refreshUser();
     if (mounted) {
-      final model.User? user =
+      final model.User user =
           Provider.of<UserProvider>(context, listen: false).getUser;
       int lengthOfWorkout = workoutEnd.difference(workoutStart).inSeconds;
 
 //check if workout already exists
       workout = Provider.of<WorkoutProvider>(context, listen: false).getWorkout;
-      if (workout != null) {
-        print('Workout already exists ${inspect(workout)}');
-      } else {
-        // start the loading
-        workout = Provider.of<WorkoutProvider>(context, listen: false)
-            .setWorkout(
-                _nameController.text,
-                user?.uid,
-                _focusOfWorkoutController.text,
-                drills,
-                dateOfWorkout,
-                lengthOfWorkout);
-        print('created new workout: ${inspect(workout)}');
-      }
+      workout ??= Provider.of<WorkoutProvider>(context, listen: false)
+          .setWorkout(
+              _nameController.text,
+              user?.uid,
+              _focusOfWorkoutController.text,
+              drills,
+              dateOfWorkout,
+              lengthOfWorkout);
     }
     setState(() {
       isLoading = false;
@@ -110,6 +105,7 @@ class _AddWorkoutState extends State<AddWorkout> {
     // start the loading
     try {
       // upload to storage and db
+
       String res = await FireStoreMethods().uploadWorkout(workout);
       if (res == "success" && context.mounted) {
         Provider.of<WorkoutProvider>(context, listen: false)
@@ -120,9 +116,6 @@ class _AddWorkoutState extends State<AddWorkout> {
             context,
             'Created!',
           );
-          Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (context) => const HomePage()),
-              (route) => false);
         }
       } else {
         if (context.mounted) {
@@ -148,10 +141,6 @@ class _AddWorkoutState extends State<AddWorkout> {
     try {
       Provider.of<WorkoutProvider>(context, listen: false)
           .deleteWorkout(workout.workoutId);
-
-      Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const HomePage()),
-          (route) => false);
     } catch (err) {
       showSnackBar(
         context,
@@ -226,7 +215,12 @@ class _AddWorkoutState extends State<AddWorkout> {
                     fontSize: 16.0),
               ),
               leading: IconButton(
-                onPressed: () => {},
+                onPressed: () => {
+                  setState(() {
+                    Provider.of<screenIndexProvider>(context, listen: false)
+                        .updateScreenIndex(0);
+                  })
+                },
                 icon: const Icon(Icons.arrow_back),
               ),
               centerTitle: true,
@@ -241,7 +235,14 @@ class _AddWorkoutState extends State<AddWorkout> {
                           side: BorderSide.none),
                     ),
                     onPressed: workout != null && workout!.drills.isNotEmpty
-                        ? () => uploadWorkout(workout!)
+                        ? () => {
+                              uploadWorkout(workout!),
+                              setState(() {
+                                Provider.of<screenIndexProvider>(context,
+                                        listen: false)
+                                    .updateScreenIndex(0);
+                              })
+                            }
                         : () => showDialog(
                               context: context,
                               builder: (ctx) => AlertDialog(
@@ -309,7 +310,7 @@ class _AddWorkoutState extends State<AddWorkout> {
                           ),
                           keyboardType: TextInputType.text,
                           controller: _focusOfWorkoutController,
-                          onSubmitted: (value) => editWorkout(),
+                          onChanged: (value) => editWorkout(),
                         ),
                       ),
                     ),
@@ -348,41 +349,6 @@ class _AddWorkoutState extends State<AddWorkout> {
             ),
           ));
   }
-
-  // Widget createSlidable(var i) {
-  //   final WorkoutProvider workoutProvider =
-  //       Provider.of<WorkoutProvider>(context);
-
-  //   return Slidable(
-  //     // Specify a key if the Slidable is dismissible.
-  //     key: const ValueKey(0),
-
-  //     // The end action pane is the one at the right or the bottom side.
-  //     endActionPane: ActionPane(
-  //       motion: ScrollMotion(),
-  //       extentRatio: .25,
-  //       children: [
-  //         SlidableAction(
-  //           // An action can be bigger than the others.
-  //           // flex: 1,
-  //           onPressed: (BuildContext context) async {
-  //             await Provider.of<WorkoutProvider>(context, listen: false)
-  //                 .removeDrills(i);
-  //           },
-
-  //           backgroundColor: Color(0xFFFE4A49),
-  //           foregroundColor: Colors.white,
-  //           icon: Icons.delete,
-  //           label: 'Delete',
-  //         ),
-  //       ],
-  //     ),
-
-  //     // The child of the Slidable is what the user sees when the
-  //     // component is not dragged.
-  //     child: ListTile(title: Center(child: Text('${i['name']}'))),
-  //   );
-  // }
 
   List<Widget> listView() {
     List<Widget> topPart = [];
@@ -472,7 +438,13 @@ class _AddWorkoutState extends State<AddWorkout> {
         margin: const EdgeInsets.all(5),
         // width: double.infinity,
         child: ElevatedButton(
-          onPressed: () => cancelWorkout(workout!),
+          onPressed: () => {
+            cancelWorkout(workout!),
+            setState(() {
+              Provider.of<screenIndexProvider>(context, listen: false)
+                  .updateScreenIndex(0);
+            })
+          },
           child: const Text(
             "Cancel Workout",
             style: TextStyle(
