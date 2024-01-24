@@ -28,6 +28,10 @@ class WorkoutProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void editDrills(i, drill) {
+    _workout?.drills[i] = drill;
+  }
+
   dynamic removeDrills(drill) {
     var removed = _workout!.drills.removeAt(drill);
     print(drill);
@@ -39,6 +43,13 @@ class WorkoutProvider with ChangeNotifier {
   void deleteWorkout(workoutId) {
     if (_workout?.workoutId == workoutId) {
       _workout = null;
+      notifyListeners();
+    }
+  }
+
+  void updateWorkout(workoutId, workout) {
+    if (_workout?.workoutId == workoutId) {
+      _workout = workout;
       notifyListeners();
     }
   }

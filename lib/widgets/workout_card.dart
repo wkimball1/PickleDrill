@@ -56,6 +56,8 @@ class _WorkoutCardState extends State<WorkoutCard> {
     Size size = MediaQuery.of(context).size;
 
     return Card(
+      shadowColor: Colors.blue,
+      color: Colors.white,
       margin: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 0),
       child: Builder(builder: (context) {
         return Padding(
@@ -73,7 +75,7 @@ class _WorkoutCardState extends State<WorkoutCard> {
                         user.username,
                         style: const TextStyle(
                           fontSize: 14.0,
-
+                          fontWeight: FontWeight.bold,
                           // color: Colors.lightGreen[300],
                         ),
                       ),
@@ -131,12 +133,48 @@ class _WorkoutCardState extends State<WorkoutCard> {
                 ],
               ),
               const SizedBox(height: 4.0),
-              const Text(
-                "Time",
-                style: TextStyle(
-                  fontSize: 12.0,
-                  // color: Colors.lightGreen[300]
+              Row(children: [
+                const Text(
+                  "Focus of Workout",
+                  style: TextStyle(
+                    fontSize: 12.0,
+                    fontWeight: FontWeight.bold,
+                    decoration: TextDecoration.underline,
+                    // color: Colors.lightGreen[300]
+                  ),
                 ),
+              ]),
+              Row(
+                children: [
+                  Text(widget.snap.data()['focusOfWorkout'],
+                      style: TextStyle(
+                        fontSize: 12.0,
+                      )),
+                ],
+              ),
+              const SizedBox(height: 8.0),
+              Row(
+                children: [
+                  const Text(
+                    "Drill Name",
+                    style: TextStyle(
+                      fontSize: 12.0,
+                      fontWeight: FontWeight.bold,
+                      decoration: TextDecoration.underline,
+                      // color: Colors.lightGreen[300]
+                    ),
+                  ),
+                  Spacer(),
+                  const Text(
+                    "Time",
+                    style: TextStyle(
+                      fontSize: 12.0,
+                      fontWeight: FontWeight.bold,
+                      decoration: TextDecoration.underline,
+                      // color: Colors.lightGreen[300]
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 4.0),
               Column(

@@ -68,11 +68,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: CircularProgressIndicator(),
           )
         : Scaffold(
+            backgroundColor: Colors.white,
             appBar: AppBar(
               backgroundColor: mobileBackgroundColor,
               title: Text(
                 userData['username'],
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
                   color: Colors.black,
                 ),

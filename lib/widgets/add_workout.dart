@@ -29,7 +29,7 @@ class _AddWorkoutState extends State<AddWorkout> {
   int dateOfWorkout = DateTime.now().millisecondsSinceEpoch;
   DateTime workoutStart = DateTime.now();
   DateTime workoutEnd = DateTime.now();
-  List drills = [];
+  List<Map<String, dynamic>> drills = [];
   Workouts? workout;
 
   final TextEditingController _nameController = TextEditingController();
@@ -50,6 +50,23 @@ class _AddWorkoutState extends State<AddWorkout> {
     DrillProvider drillProvider =
         Provider.of<DrillProvider>(context, listen: false);
     await drillProvider.addAllDrills();
+  }
+
+  updateDrillsTime(i) {
+    if (workout != null && workout!.drills.isNotEmpty) {
+      workout!.drills[i]["drillTime"] = _timeController[i].text;
+      var drill = workout!.drills[i];
+      inspect(workout!.drills[i]);
+    }
+  }
+
+  updateDrills() {
+    if (workout != null && workout!.drills.isNotEmpty) {
+      for (int i = 0; i < workout!.drills.length; i++) {
+        Provider.of<WorkoutProvider>(context, listen: false)
+            .editDrills(i, workout!.drills[i]);
+      }
+    }
   }
 
   createWorkout() async {
@@ -146,16 +163,25 @@ class _AddWorkoutState extends State<AddWorkout> {
     });
   }
 
+  editWorkout() {
+    // start the loading
+    if (workout != null) {
+      workout!.focusOfWorkout = _focusOfWorkoutController.text;
+      Provider.of<WorkoutProvider>(context, listen: false)
+          .updateWorkout(workout!.workoutId, workout!);
+    }
+  }
+
   void updateControllers() {
-    setState(() {
-      _timeController = [];
-      if (workout != null && workout!.drills.isNotEmpty) {
-        for (int i = 0; i < workout!.drills.length; i++) {
-          _timeController.add(TextEditingController());
-        }
+    // setState(() {
+    _timeController = [];
+    if (workout != null && workout!.drills.isNotEmpty) {
+      for (int i = 0; i < workout!.drills.length; i++) {
+        _timeController
+            .add(TextEditingController(text: workout!.drills[i]["drillTime"]));
       }
-    });
-    inspect(_timeController);
+    }
+    // });
   }
 
   @override
@@ -177,12 +203,14 @@ class _AddWorkoutState extends State<AddWorkout> {
         Provider.of<WorkoutProvider>(context, listen: true);
     workout = workoutProvider.getWorkout;
     updateControllers();
+    _focusOfWorkoutController.text = workout?.focusOfWorkout ?? "";
     return (isLoading
         ? const Center(
             child: CircularProgressIndicator(),
           )
         : Scaffold(
             resizeToAvoidBottomInset: false,
+            backgroundColor: Colors.white,
             appBar: AppBar(
               backgroundColor: mobileBackgroundColor,
               // leading: IconButton(
@@ -203,19 +231,57 @@ class _AddWorkoutState extends State<AddWorkout> {
               ),
               centerTitle: true,
               actions: <Widget>[
-                TextButton(
-                  onPressed: workout != null && workout!.drills.isNotEmpty
-                      ? () => uploadWorkout(workout!)
-                      : () => showSnackBar(
-                            context,
-                            ('must add a drill'),
-                          ),
-                  child: const Text(
-                    "Finish",
-                    style: TextStyle(
-                        color: Colors.blueAccent,
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(0.0),
+                          side: BorderSide.none),
+                    ),
+                    onPressed: workout != null && workout!.drills.isNotEmpty
+                        ? () => uploadWorkout(workout!)
+                        : () => showDialog(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                actionsAlignment: MainAxisAlignment.center,
+                                titlePadding: EdgeInsets.fromLTRB(0, 15, 0, 10),
+                                contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+                                actionsPadding: EdgeInsets.fromLTRB(0, 0, 0, 0),
+                                title: const Text("Add a drill",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 16,
+                                    )),
+                                // content: const Divider(
+                                //   height: 5,
+                                //   thickness: .1,
+                                //   color: Colors.black,
+                                // ),
+                                actions: <Widget>[
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(ctx).pop();
+                                    },
+                                    child: const Text(
+                                      "Ok",
+                                      style: TextStyle(
+                                          color: Colors.blue, fontSize: 16),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                    child: const Text(
+                      "Finish",
+                      style: TextStyle(
+                        color: Colors.white,
                         fontWeight: FontWeight.bold,
-                        fontSize: 14.0),
+                        fontSize: 14.0,
+                      ),
+                    ),
                   ),
                 )
               ],
@@ -235,10 +301,15 @@ class _AddWorkoutState extends State<AddWorkout> {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 16),
-                        child: TextFieldInput(
-                          hintText: 'What are you trying to improve?',
-                          textInputType: TextInputType.text,
-                          textEditingController: _focusOfWorkoutController,
+                        child: TextField(
+                          decoration: InputDecoration(
+                            hintText: "What are you trying to improve?",
+                            border: OutlineInputBorder(
+                                borderSide: Divider.createBorderSide(context)),
+                          ),
+                          keyboardType: TextInputType.text,
+                          controller: _focusOfWorkoutController,
+                          onSubmitted: (value) => editWorkout(),
                         ),
                       ),
                     ),
@@ -352,11 +423,12 @@ class _AddWorkoutState extends State<AddWorkout> {
                   Flexible(
                     child: Padding(
                       padding: const EdgeInsets.all(4.0),
-                      child: TextFieldInput(
-                        hintText: '10',
-                        textInputType: TextInputType.number,
-                        textEditingController: _timeController[i],
-                      ),
+                      child: TextField(
+                          decoration: InputDecoration(hintText: '10'),
+                          keyboardType: TextInputType.number,
+                          controller: _timeController[i],
+                          onChanged: (value) => updateDrillsTime(i),
+                          onSubmitted: updateDrills()),
                     ),
                   ),
                 ],

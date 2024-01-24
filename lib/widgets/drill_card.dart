@@ -22,7 +22,6 @@ class DrillCard extends StatelessWidget {
                     snap['name'],
                     style: const TextStyle(
                       fontSize: 12.0,
-                      fontWeight: FontWeight.bold,
                       // color: Colors.lightGreen[300]
                     ),
                   ),
@@ -43,14 +42,22 @@ class DrillCard extends StatelessWidget {
                 children: <Widget>[
                   Align(
                     alignment: Alignment.centerLeft,
-                    child: Text(
-                      snap['name'],
-                      style: const TextStyle(
-                        fontSize: 12.0,
-                        fontWeight: FontWeight.bold,
-                        // color: Colors.lightGreen[300]
-                      ),
-                    ),
+                    child: snap.containsKey("drillTime") &&
+                            snap["drillTime"] != null
+                        ? Text(
+                            snap['drillTime'],
+                            style: const TextStyle(
+                              fontSize: 12.0,
+                              // color: Colors.lightGreen[300]
+                            ),
+                          )
+                        : Text(
+                            "10",
+                            style: const TextStyle(
+                              fontSize: 12.0,
+                              // color: Colors.lightGreen[300]
+                            ),
+                          ),
                   ),
                   // const SizedBox(height: 2.0),
                   // Text(

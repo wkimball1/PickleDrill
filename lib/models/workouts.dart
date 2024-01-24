@@ -1,13 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Workouts {
-  final String name;
+  String name;
   final String uid;
-  final String focusOfWorkout;
+  String focusOfWorkout;
   List drills = [];
-  final int dateOfWorkout;
-  final int? lengthOfWorkout;
-  final String? description;
+  int dateOfWorkout;
+  int? lengthOfWorkout;
+  String? description;
   final String workoutId;
 
   Workouts(

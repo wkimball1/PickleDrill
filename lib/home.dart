@@ -69,17 +69,18 @@ class _HomePageState extends State<HomePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         // TRY THIS: Try changing the color here to a specific color (to
         // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
         // change color while the other colors stay the same.
-        backgroundColor: Colors.green[900],
+        backgroundColor: Color.fromARGB(255, 255, 255, 255),
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.account_circle),
-            color: Colors.black,
+            color: Colors.black54,
             onPressed: () {},
             iconSize: 40,
           ),
@@ -93,7 +94,7 @@ class _HomePageState extends State<HomePage> {
           children: <Widget>[
             DrawerHeader(
               decoration: BoxDecoration(
-                color: Colors.lightGreen.shade100,
+                color: Colors.lightBlueAccent,
               ),
               child: const Text(
                 'Drawer Header',

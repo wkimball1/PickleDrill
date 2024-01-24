@@ -67,7 +67,6 @@ class DrillProvider with ChangeNotifier {
         ['serve']));
     for (final drill in drills) {
       FireStoreMethods().uploadDrill(drill);
-      inspect(drill);
     }
   }
 }

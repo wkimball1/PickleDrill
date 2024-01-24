@@ -79,7 +79,6 @@ class _AddDrillsState extends State<AddDrills> {
   }
 
   UnmodifiableListView getDrill() {
-    inspect(drills);
     setState(() {
       drillSubset = [];
       if (_searchText.isEmpty) {
