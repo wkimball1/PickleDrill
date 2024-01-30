@@ -5,7 +5,10 @@ import '../resources/firestore_methods.dart';
 import '../models/user.dart' as model;
 import '../utils.dart';
 import '../providers/user_provider.dart';
+import '../providers/workout_provider.dart';
 import 'package:provider/provider.dart';
+import '../providers/screen_index_provider.dart';
+
 import 'dart:developer';
 
 class WorkoutCard extends StatefulWidget {
@@ -53,6 +56,10 @@ class _WorkoutCardState extends State<WorkoutCard> {
   @override
   Widget build(BuildContext context) {
     final model.User user = Provider.of<UserProvider>(context).getUser;
+    final _screenProvider =
+        Provider.of<screenIndexProvider>(context, listen: true);
+    final int holdIndex = _screenProvider.fetchCurrentScreenIndex;
+    final workoutProvider = Provider.of<WorkoutProvider>(context, listen: true);
     Size size = MediaQuery.of(context).size;
 
     return Card(
@@ -98,30 +105,57 @@ class _WorkoutCardState extends State<WorkoutCard> {
                                 useRootNavigator: false,
                                 context: context,
                                 builder: (context) {
-                                  return Dialog(
-                                    child: Column(
-                                        children: [
-                                      'Delete Workout',
-                                    ]
-                                            .map(
-                                              (e) => InkWell(
-                                                  child: Container(
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                        vertical: 16,
-                                                        horizontal: 16),
-                                                    child: Text(e),
-                                                  ),
-                                                  onTap: () {
-                                                    deleteWorkout(
-                                                      widget.snap['workoutId']
-                                                          .toString(),
-                                                    );
-                                                    // remove the dialog box
-                                                    Navigator.of(context).pop();
-                                                  }),
-                                            )
-                                            .toList()),
+                                  return AlertDialog(
+                                    actionsAlignment: MainAxisAlignment.center,
+                                    titlePadding:
+                                        EdgeInsets.fromLTRB(0, 0, 0, 10),
+                                    contentPadding:
+                                        EdgeInsets.fromLTRB(0, 15, 0, 0),
+                                    actionsPadding:
+                                        EdgeInsets.fromLTRB(0, 0, 0, 0),
+                                    content: const Text("Delete this workout?",
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 16,
+                                        )),
+                                    // content: const Divider(
+                                    //   height: 5,
+                                    //   thickness: .1,
+                                    //   color: Colors.black,
+                                    // ),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            String res = deleteWorkout(
+                                                    widget.snap['workoutId'])
+                                                .toString();
+                                            inspect(res);
+                                            Navigator.of(context).pop();
+                                            workoutProvider.getWorkoutsDB();
+                                            // _screenProvider
+                                            //     .updateScreenIndex(holdIndex);
+                                          });
+                                        },
+                                        child: const Text(
+                                          "Delete",
+                                          style: TextStyle(
+                                              color: Colors.red, fontSize: 16),
+                                        ),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: const Text(
+                                          "Cancel",
+                                          style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 16),
+                                        ),
+                                      ),
+                                    ],
                                   );
                                 },
                               );

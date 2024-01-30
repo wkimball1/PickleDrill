@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:pickledrill/models/saved_workouts.dart';
 import '../models/workouts.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:developer';
@@ -6,25 +7,24 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../utils.dart';
 
-class WorkoutProvider with ChangeNotifier {
-  Workouts? _workout;
+class SavedWorkoutProvider with ChangeNotifier {
+  SavedWorkouts? _workout;
 
   List _workouts = [];
 
-  Workouts? get getWorkout => _workout;
+  SavedWorkouts? get getWorkout => _workout;
 
   List get getWorkouts => _workouts;
 
-  Workouts setWorkout(
-      name, uid, focusOfWorkout, drills, dateOfWorkout, lengthOfWorkout) {
-    _workout = Workouts(
+  SavedWorkouts setWorkout(name, uid, focusOfWorkout, drills, likedBy) {
+    _workout = SavedWorkouts(
         workoutId: const Uuid().v1(), // creates unique id based on time
         name: name,
         uid: uid,
         focusOfWorkout: focusOfWorkout,
-        drills: drills,
-        dateOfWorkout: dateOfWorkout,
-        lengthOfWorkout: lengthOfWorkout);
+        drills: [],
+        dateOfWorkout: DateTime.now().millisecondsSinceEpoch,
+        likedBy: []);
 
     notifyListeners();
     return _workout!;
@@ -61,12 +61,12 @@ class WorkoutProvider with ChangeNotifier {
     }
   }
 
-  Future<List> getWorkoutsDB() async {
+  Future<List> getSavedWorkouts() async {
     _workouts = [];
     try {
       // get workouts
       var workoutSnap = await FirebaseFirestore.instance
-          .collection('workouts')
+          .collection('saved_workouts')
           .where("uid", isEqualTo: FirebaseAuth.instance.currentUser!.uid)
           .orderBy("dateOfWorkout", descending: true)
           .get();

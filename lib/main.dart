@@ -6,6 +6,7 @@ import 'package:pickledrill/widgets/add_workout.dart';
 import 'screens/login_screen.dart';
 import 'providers/user_provider.dart';
 import 'providers/workout_provider.dart';
+import 'providers/saved_workouts_provider.dart';
 import 'providers/drill_provider.dart';
 import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -42,6 +43,9 @@ class MyApp extends StatelessWidget {
             create: (_) => screenIndexProvider()),
         ChangeNotifierProvider<WorkoutProvider>(
           create: (_) => WorkoutProvider(),
+        ),
+        ChangeNotifierProvider<SavedWorkoutProvider>(
+          create: (_) => SavedWorkoutProvider(),
         ),
         ChangeNotifierProvider<DrillProvider>(
           create: (_) => DrillProvider(),

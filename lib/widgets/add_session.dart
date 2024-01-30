@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../resources/firestore_methods.dart';
 import '../models/user.dart' as model;
-import '../models/workouts.dart';
+import '../models/saved_workouts.dart';
 import '../utils.dart';
 import '../colors.dart';
 import '../providers/user_provider.dart';
-import '../providers/workout_provider.dart';
+import '../providers/saved_workouts_provider.dart';
 import '../providers/screen_index_provider.dart';
 import 'package:provider/provider.dart';
 import '../screens/add_drill_screen.dart';
@@ -17,22 +17,21 @@ import '../home.dart';
 import '../widgets/text_field_input.dart';
 import 'package:flutter/rendering.dart';
 
-class AddWorkout extends StatefulWidget {
-  bool? session = false;
-  AddWorkout({super.key, this.session});
+class AddSession extends StatefulWidget {
+  const AddSession({super.key});
 
   @override
-  State<AddWorkout> createState() => _AddWorkoutState();
+  State<AddSession> createState() => _AddSessionState();
 }
 
-class _AddWorkoutState extends State<AddWorkout> {
+class _AddSessionState extends State<AddSession> {
   bool isLoading = false;
   bool isReady = true;
   int dateOfWorkout = DateTime.now().millisecondsSinceEpoch;
-  DateTime workoutStart = DateTime.now();
-  DateTime workoutEnd = DateTime.now();
   List<Map<String, dynamic>> drills = [];
-  Workouts? workout;
+  List selectedDrills = [];
+  SavedWorkouts? workout;
+  List likedBy = [];
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
@@ -44,20 +43,12 @@ class _AddWorkoutState extends State<AddWorkout> {
   @override
   void initState() {
     super.initState();
-    addDrills();
     createWorkout();
-  }
-
-  addDrills() async {
-    DrillProvider drillProvider =
-        Provider.of<DrillProvider>(context, listen: false);
-    await drillProvider.addAllDrills();
   }
 
   updateDrillsTime(i) {
     if (workout != null && workout!.drills.isNotEmpty) {
       workout!.drills[i]["drillTime"] = _timeController[i].text;
-      var drill = workout!.drills[i];
       inspect(workout!.drills[i]);
     }
   }
@@ -65,7 +56,7 @@ class _AddWorkoutState extends State<AddWorkout> {
   updateDrills() {
     if (workout != null && workout!.drills.isNotEmpty) {
       for (int i = 0; i < workout!.drills.length; i++) {
-        Provider.of<WorkoutProvider>(context, listen: false)
+        Provider.of<SavedWorkoutProvider>(context, listen: false)
             .editDrills(i, workout!.drills[i]);
       }
     }
@@ -81,37 +72,33 @@ class _AddWorkoutState extends State<AddWorkout> {
     if (mounted) {
       final model.User user =
           Provider.of<UserProvider>(context, listen: false).getUser;
-      int lengthOfWorkout = workoutEnd.difference(workoutStart).inSeconds;
 
 //check if workout already exists
-      workout = Provider.of<WorkoutProvider>(context, listen: false).getWorkout;
-      workout ??= Provider.of<WorkoutProvider>(context, listen: false)
-          .setWorkout(
-              _nameController.text,
-              user.uid,
-              _focusOfWorkoutController.text,
-              drills,
-              dateOfWorkout,
-              lengthOfWorkout);
+      workout =
+          Provider.of<SavedWorkoutProvider>(context, listen: false).getWorkout;
+      workout ??= Provider.of<SavedWorkoutProvider>(context, listen: false)
+          .setWorkout(_nameController.text, user.uid,
+              _focusOfWorkoutController.text, drills, likedBy);
     }
     setState(() {
       isLoading = false;
     });
   }
 
-  void uploadWorkout(Workouts workout) async {
+  void uploadWorkout(SavedWorkouts workout) async {
     setState(() {
       isLoading = true;
     });
     // start the loading
     try {
       // upload to storage and db
-
-      String res = await FireStoreMethods().uploadWorkout(workout);
+      workout.name = _nameController.text;
+      String res = await FireStoreMethods().uploadSavedWorkout(workout);
       if (res == "success" && context.mounted) {
-        Provider.of<WorkoutProvider>(context, listen: false)
+        Provider.of<SavedWorkoutProvider>(context, listen: false)
             .deleteWorkout(workout.workoutId);
-        Provider.of<WorkoutProvider>(context, listen: false).getWorkoutsDB();
+        Provider.of<SavedWorkoutProvider>(context, listen: false)
+            .getSavedWorkouts();
         if (context.mounted) {
           showSnackBar(
             context,
@@ -134,13 +121,13 @@ class _AddWorkoutState extends State<AddWorkout> {
     });
   }
 
-  void cancelWorkout(Workouts workout) async {
+  void cancelWorkout(SavedWorkouts workout) async {
     setState(() {
       isLoading = true;
     });
     // start the loading
     try {
-      Provider.of<WorkoutProvider>(context, listen: false)
+      Provider.of<SavedWorkoutProvider>(context, listen: false)
           .deleteWorkout(workout.workoutId);
     } catch (err) {
       showSnackBar(
@@ -157,7 +144,8 @@ class _AddWorkoutState extends State<AddWorkout> {
     // start the loading
     if (workout != null) {
       workout!.focusOfWorkout = _focusOfWorkoutController.text;
-      Provider.of<WorkoutProvider>(context, listen: false)
+      workout!.name = _nameController.text;
+      Provider.of<SavedWorkoutProvider>(context, listen: false)
           .updateWorkout(workout!.workoutId, workout!);
     }
   }
@@ -190,11 +178,11 @@ class _AddWorkoutState extends State<AddWorkout> {
   Widget build(BuildContext context) {
     final UserProvider userProvider = Provider.of<UserProvider>(context);
     final screenindexprovider = Provider.of<screenIndexProvider>(context);
-    final WorkoutProvider workoutProvider =
-        Provider.of<WorkoutProvider>(context, listen: true);
-    workout = workoutProvider.getWorkout;
+    final SavedWorkoutProvider savedWorkoutProvider =
+        Provider.of<SavedWorkoutProvider>(context, listen: true);
+    workout = savedWorkoutProvider.getWorkout;
     updateControllers();
-    _focusOfWorkoutController.text = workout?.focusOfWorkout ?? "";
+    _nameController.text = workout?.name ?? "";
     return (isLoading
         ? const Center(
             child: CircularProgressIndicator(),
@@ -210,13 +198,16 @@ class _AddWorkoutState extends State<AddWorkout> {
               // ),
               leadingWidth: 100,
               title: const Text(
-                'Create Workout',
+                'New Session',
                 style: TextStyle(
                     color: Colors.black,
                     fontWeight: FontWeight.bold,
                     fontSize: 16.0),
               ),
               leading: IconButton(
+                // onPressed: () => screenindexprovider.updateScreenIndex(
+                //     Provider.of<screenIndexProvider>(context, listen: false)
+                //         .fetchPreviousScreenIndex),
                 onPressed: () => Navigator.of(context).maybePop(),
                 icon: const Icon(Icons.arrow_back),
               ),
@@ -234,11 +225,7 @@ class _AddWorkoutState extends State<AddWorkout> {
                     onPressed: workout != null && workout!.drills.isNotEmpty
                         ? () => {
                               uploadWorkout(workout!),
-                              setState(() {
-                                Provider.of<screenIndexProvider>(context,
-                                        listen: false)
-                                    .updateScreenIndex(0);
-                              })
+                              Navigator.of(context).maybePop()
                             }
                         : () => showDialog(
                               context: context,
@@ -273,7 +260,7 @@ class _AddWorkoutState extends State<AddWorkout> {
                               ),
                             ),
                     child: const Text(
-                      "Finish",
+                      "Save",
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -297,17 +284,14 @@ class _AddWorkoutState extends State<AddWorkout> {
                   children: [
                     Container(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.fromLTRB(16, 10, 8, 16),
                         child: TextField(
                           decoration: InputDecoration(
-                            hintText: "What are you trying to improve?",
+                            hintText: "Session Name",
                             border: InputBorder.none,
-                            // OutlineInputBorder(
-                            //     borderSide: Divider.createBorderSide(context)),
                           ),
                           keyboardType: TextInputType.text,
-                          controller: _focusOfWorkoutController,
+                          controller: _nameController,
                           onChanged: (value) => editWorkout(),
                         ),
                       ),
@@ -360,7 +344,7 @@ class _AddWorkoutState extends State<AddWorkout> {
               setState(()
                   // TODO: implement your delete function and check direction if needed
                   {
-                Provider.of<WorkoutProvider>(context, listen: false)
+                Provider.of<SavedWorkoutProvider>(context, listen: false)
                     .removeDrills(i);
               });
             },
@@ -401,7 +385,7 @@ class _AddWorkoutState extends State<AddWorkout> {
       }
     } else {
       topPart.add(
-          SizedBox(height: 200, child: Center(child: Text('Empty Workout'))));
+          SizedBox(height: 200, child: Center(child: Text('Empty Session'))));
     }
     topPart.add(Align(
       alignment: Alignment.bottomCenter,
@@ -409,11 +393,29 @@ class _AddWorkoutState extends State<AddWorkout> {
         margin: const EdgeInsets.all(5),
         width: double.infinity,
         child: ElevatedButton(
-          onPressed: () => Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => AddDrills(),
-            ),
-          ),
+          onPressed: () async {
+            final result = await Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => AddDrills(isWorkout: false),
+              ),
+            );
+
+            // selectedDrills = result;
+            // if (mounted) {
+            //   if (selectedDrills.isNotEmpty) {
+            //     for (int i = 0; i < selectedDrills.length; i++) {
+            //       Provider.of<SavedWorkoutProvider>(context, listen: false)
+            //           .addDrills(selectedDrills[i]);
+            //     }
+            //     inspect(selectedDrills);
+            //   } else {
+            //     showSnackBar(
+            //       context,
+            //       "select at least 1 drill",
+            //     );
+            //   }
+            // }
+          },
           style: ButtonStyle(
               backgroundColor: MaterialStateProperty.all(Colors.blue),
               shape: MaterialStateProperty.all<RoundedRectangleBorder>(
@@ -440,10 +442,14 @@ class _AddWorkoutState extends State<AddWorkout> {
             // width: double.infinity,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: Colors.white),
-              onPressed: () =>
-                  {cancelWorkout(workout!), Navigator.of(context).maybePop()},
+              onPressed: () => {
+                cancelWorkout(workout!),
+                setState(() {
+                  Navigator.of(context).maybePop();
+                })
+              },
               child: const Text(
-                "Cancel Workout",
+                "Delete Session",
                 style: TextStyle(
                     color: Colors.black,
                     fontWeight: FontWeight.bold,

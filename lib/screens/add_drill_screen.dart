@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:pickledrill/providers/saved_workouts_provider.dart';
 import '../resources/firestore_methods.dart';
 import '../models/user.dart' as model;
 import '../models/workouts.dart';
@@ -14,7 +15,8 @@ import 'package:pickledrill/widgets/add_workout.dart';
 import 'dart:developer';
 
 class AddDrills extends StatefulWidget {
-  const AddDrills({super.key});
+  bool isWorkout;
+  AddDrills({super.key, this.isWorkout = true});
 
   @override
   State<AddDrills> createState() => _AddDrillsState();
@@ -22,6 +24,7 @@ class AddDrills extends StatefulWidget {
 
 class _AddDrillsState extends State<AddDrills> {
   bool isLoading = false;
+  List savedDrills = [];
   List drills = [];
   List drillSubset = [];
   List<int> _selectedDrills = [];
@@ -49,6 +52,7 @@ class _AddDrillsState extends State<AddDrills> {
 
   fetchAllDrills() async {
     drills = [];
+    savedDrills = [];
     setState(() {
       isLoading = true;
     });
@@ -158,12 +162,21 @@ class _AddDrillsState extends State<AddDrills> {
                         {
                           for (int i = 0; i < _selectedDrills.length; i++)
                             {
-                              Provider.of<WorkoutProvider>(context,
-                                      listen: false)
-                                  .addDrills(drills[_selectedDrills[i]])
+                              if (widget.isWorkout)
+                                {
+                                  Provider.of<WorkoutProvider>(context,
+                                          listen: false)
+                                      .addDrills(drills[_selectedDrills[i]]),
+                                  savedDrills.add(drills[_selectedDrills[i]])
+                                }
+                              else
+                                {
+                                  Provider.of<SavedWorkoutProvider>(context,
+                                          listen: false)
+                                      .addDrills(drills[_selectedDrills[i]]),
+                                }
                             },
-                          inspect(_selectedDrills),
-                          Navigator.of(context).pop((context, drills))
+                          Navigator.pop(context, savedDrills)
                         }
                       else
                         {

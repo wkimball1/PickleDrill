@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:pickledrill/models/saved_workouts.dart';
 import '../models/workouts.dart';
 import '../models/drills.dart';
 import 'package:uuid/uuid.dart';
@@ -137,4 +138,34 @@ class FireStoreMethods {
   //     if (kDebugMode) print(e.toString());
   //   }
   // }
+
+  Future<String> uploadSavedWorkout(SavedWorkouts savedWorkout) async {
+    // asking uid here because we dont want to make extra calls to firebase auth when we can just get from our state management
+    String res = "Some error occurred";
+    if (savedWorkout.drills.isNotEmpty) {
+      try {
+        _firestore
+            .collection('saved_workouts')
+            .doc(savedWorkout.workoutId)
+            .set(savedWorkout.toJson());
+        res = "success";
+      } catch (err) {
+        res = err.toString();
+      }
+      return res;
+    } else {
+      return "must have at least 1 drill selected";
+    }
+  }
+
+  Future<String> deleteSavedWorkout(String workoutId) async {
+    String res = "Some error occurred";
+    try {
+      await _firestore.collection('saved_workouts').doc(workoutId).delete();
+      res = 'success';
+    } catch (err) {
+      res = err.toString();
+    }
+    return res;
+  }
 }

@@ -3,6 +3,7 @@ import 'package:persistent_bottom_nav_bar/persistent_tab_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:pickledrill/screens/workout_screen.dart';
+import 'package:pickledrill/screens/create_workout_screen.dart';
 import 'package:pickledrill/widgets/add_workout.dart';
 import '../screens/home_screen.dart';
 import '../screens/profile_screen.dart';
@@ -19,10 +20,11 @@ class BottomNavBar extends StatelessWidget {
   List<Widget> screens() {
     return [
       WorkoutScreen(physics: AlwaysScrollableScrollPhysics()),
-      const AddWorkout(),
+      const CreateWorkoutScreen(),
       ProfileScreen(
         uid: FirebaseAuth.instance.currentUser!.uid,
       ),
+      AddWorkout(session: false),
     ];
   }
 
